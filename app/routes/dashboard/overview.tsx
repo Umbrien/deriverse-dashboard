@@ -32,56 +32,67 @@ export default function Overview() {
   const pnlPositive = metrics.netPnl >= 0;
   const netReturn = metrics.netPnl / Math.max(metrics.totalVolume, 1);
   const pnlDelta = percentFormatter.format(netReturn);
+  const sparkline = pnlSeries.slice(-10).map((point) => point.pnl);
+  const sparkMax = Math.max(
+    1,
+    ...sparkline.map((value) => Math.abs(value)),
+  );
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="panel flex flex-col gap-6 p-6">
-        <div className="space-y-3">
-          <span className="chip">Deriverse Analytics</span>
-          <h2 className="font-display text-3xl text-white sm:text-4xl">
-            Trading intelligence, portfolio control, and a professional journal
-            in one on-chain workspace.
-          </h2>
-          <p className="max-w-2xl text-sm text-slate-300">
-            Track total PnL, optimize directional bias, and audit every decision
-            with a secure, read-only dashboard built for active Solana traders.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="panel-soft p-4">
-            <p className="stat-label">Net performance</p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {formatSignedCurrency(metrics.netPnl)}
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Gross {currencyFormatter.format(metrics.grossPnl)} - Fees{" "}
-              {currencyFormatter.format(metrics.totalFees)}
+      <section className="panel-solid relative overflow-hidden p-6">
+        <div className="absolute -right-24 top-0 h-48 w-48 rounded-full bg-emerald-400/15 blur-[70px]" />
+        <div className="absolute -left-20 bottom-0 h-40 w-40 rounded-full bg-sky-400/10 blur-[70px]" />
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-3">
+            <span className="chip">Deriverse Analytics</span>
+            <h2 className="font-display text-3xl text-white sm:text-4xl">
+              Trading intelligence, portfolio control, and a professional
+              journal in one on-chain workspace.
+            </h2>
+            <p className="max-w-2xl text-sm text-slate-300">
+              Track total PnL, optimize directional bias, and audit every
+              decision with a secure, read-only dashboard built for active
+              Solana traders.
             </p>
           </div>
-          <div className="panel-soft p-4">
-            <p className="stat-label">Consistency</p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {percentFormatter.format(metrics.winRate)} win rate
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Expectancy {currencyFormatter.format(metrics.expectancy)} - Profit
-              factor {metrics.profitFactor.toFixed(2)}
-            </p>
-          </div>
-          <div className="panel-soft p-4">
-            <p className="stat-label">Execution</p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {Math.round(metrics.avgDuration)} min avg
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              {metrics.totalTrades} trades - Long/Short {metrics.longShortRatio.toFixed(2)}x
-            </p>
+          <div className="grid gap-3">
+            <div className="panel-soft p-4">
+              <p className="stat-label">Net performance</p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {formatSignedCurrency(metrics.netPnl)}
+              </p>
+              <p className="mt-2 text-xs text-slate-400">
+                Gross {currencyFormatter.format(metrics.grossPnl)} - Fees{" "}
+                {currencyFormatter.format(metrics.totalFees)}
+              </p>
+            </div>
+            <div className="panel-soft p-4">
+              <p className="stat-label">Consistency</p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {percentFormatter.format(metrics.winRate)} win rate
+              </p>
+              <p className="mt-2 text-xs text-slate-400">
+                Expectancy {currencyFormatter.format(metrics.expectancy)} -
+                Profit factor {metrics.profitFactor.toFixed(2)}
+              </p>
+            </div>
+            <div className="panel-soft p-4">
+              <p className="stat-label">Execution</p>
+              <p className="mt-3 text-2xl font-semibold text-white">
+                {Math.round(metrics.avgDuration)} min avg
+              </p>
+              <p className="mt-2 text-xs text-slate-400">
+                {metrics.totalTrades} trades - Long/Short{" "}
+                {metrics.longShortRatio.toFixed(2)}x
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <div className="panel p-5">
+        <div className="stat-card">
           <p className="stat-label">Total PnL</p>
           <div className="mt-3 flex items-end justify-between">
             <div>
@@ -110,8 +121,21 @@ export default function Overview() {
               style={{ width: pnlPositive ? "68%" : "42%" }}
             />
           </div>
+          <div className="mt-4 flex items-end gap-1">
+            {sparkline.map((value, index) => (
+              <span
+                key={`${value}-${index}`}
+                className={`w-2 rounded-full ${
+                  value >= 0 ? "bg-emerald-400/70" : "bg-rose-400/70"
+                }`}
+                style={{
+                  height: `${(Math.abs(value) / sparkMax) * 24 + 6}px`,
+                }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="panel p-5">
+        <div className="stat-card">
           <p className="stat-label">Win rate</p>
           <p className="stat-value font-display">
             {percentFormatter.format(metrics.winRate)}
@@ -121,15 +145,15 @@ export default function Overview() {
             {metrics.shortTrades} short
           </p>
           <div className="mt-4 flex items-center gap-3 text-xs text-slate-400">
-            <span className="rounded-full bg-white/10 px-3 py-1">
+            <span className="pill">
               Profit factor {metrics.profitFactor.toFixed(2)}
             </span>
-            <span className="rounded-full bg-white/10 px-3 py-1">
+            <span className="pill">
               Expectancy {currencyFormatter.format(metrics.expectancy)}
             </span>
           </div>
         </div>
-        <div className="panel p-5">
+        <div className="stat-card">
           <p className="stat-label">Trading volume</p>
           <p className="stat-value font-display">
             {currencyFormatter.format(metrics.totalVolume)}
@@ -149,7 +173,7 @@ export default function Overview() {
             </span>
           </div>
         </div>
-        <div className="panel p-5">
+        <div className="stat-card">
           <p className="stat-label">Avg duration</p>
           <p className="stat-value font-display">
             {Math.round(metrics.avgDuration)} min
@@ -158,7 +182,7 @@ export default function Overview() {
             Largest gain {currencyFormatter.format(metrics.largestGain)}
           </p>
           <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
-            <span className="rounded-full bg-white/10 px-3 py-1">
+            <span className="pill">
               Avg win {currencyFormatter.format(metrics.avgWin)}
             </span>
           </div>
@@ -185,7 +209,7 @@ export default function Overview() {
               </span>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
             <svg viewBox="0 0 640 220" className="h-56 w-full">
               <defs>
                 <linearGradient id="pnlLine" x1="0" y1="0" x2="1" y2="1">
@@ -370,7 +394,7 @@ export default function Overview() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
-        <div className="panel p-5">
+        <div className="panel-soft p-5">
           <p className="stat-label">Directional bias</p>
           <p className="mt-3 text-lg font-semibold text-white">
             Long/Short {metrics.longShortRatio.toFixed(2)}x balance
@@ -399,7 +423,7 @@ export default function Overview() {
             />
           </div>
         </div>
-        <div className="panel p-5">
+        <div className="panel-soft p-5">
           <p className="stat-label">Largest trade</p>
           <p className="mt-3 text-lg font-semibold text-white">
             {currencyFormatter.format(metrics.largestGain)} best win
@@ -408,7 +432,7 @@ export default function Overview() {
             Max loss {currencyFormatter.format(metrics.largestLoss)} - Avg win {currencyFormatter.format(metrics.avgWin)}
           </p>
         </div>
-        <div className="panel p-5">
+        <div className="panel-soft p-5">
           <p className="stat-label">Execution quality</p>
           <p className="mt-3 text-lg font-semibold text-white">
             {percentFormatter.format(1 - metrics.feeRate)} net efficiency

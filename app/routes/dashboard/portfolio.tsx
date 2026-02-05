@@ -31,7 +31,7 @@ export default function Portfolio() {
   return (
     <div className="flex flex-col gap-6">
       <section className="grid gap-6 lg:grid-cols-12">
-        <div className="panel flex flex-col gap-6 p-6 lg:col-span-7">
+        <div className="panel-solid flex flex-col gap-6 p-6 lg:col-span-7">
           <div>
             <p className="stat-label">Portfolio analysis</p>
             <h2 className="font-display text-xl text-white">
@@ -39,8 +39,8 @@ export default function Portfolio() {
             </h2>
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-900/80 text-xs uppercase tracking-[0.2em] text-slate-400">
+            <table className="data-table w-full text-left text-sm">
+              <thead>
                 <tr>
                   <th className="px-4 py-3">Asset</th>
                   <th className="px-4 py-3">Side</th>
@@ -51,9 +51,9 @@ export default function Portfolio() {
                   <th className="px-4 py-3">Risk</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody>
                 {portfolioPositions.map((position) => (
-                  <tr key={position.symbol} className="bg-slate-950/40">
+                  <tr key={position.symbol}>
                     <td className="px-4 py-4">
                       <div className="font-semibold text-slate-100">
                         {position.symbol}
@@ -85,9 +85,7 @@ export default function Portfolio() {
                       {formatSignedCurrency(position.unrealized)}
                     </td>
                     <td className="px-4 py-4">
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                        {position.risk}
-                      </span>
+                      <span className="pill">{position.risk}</span>
                     </td>
                   </tr>
                 ))}
@@ -116,7 +114,7 @@ export default function Portfolio() {
           </div>
         </div>
 
-        <div className="panel flex flex-col gap-6 p-6 lg:col-span-5">
+        <div className="panel-solid flex flex-col gap-6 p-6 lg:col-span-5">
           <div>
             <p className="stat-label">Risk posture</p>
             <h2 className="font-display text-xl text-white">

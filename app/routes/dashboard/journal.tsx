@@ -17,7 +17,7 @@ export default function Journal() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="panel flex flex-col gap-6 p-6">
+      <section className="panel-solid flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="stat-label">Trading journal</p>
@@ -31,9 +31,9 @@ export default function Journal() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-[0.2em] text-slate-400">
-              <tr className="border-b border-white/10">
+          <table className="data-table min-w-[980px] w-full text-left text-sm">
+            <thead>
+              <tr>
                 <th className="px-4 py-3">Trade</th>
                 <th className="px-4 py-3">Symbol</th>
                 <th className="px-4 py-3">Side</th>
@@ -45,7 +45,7 @@ export default function Journal() {
                 <th className="px-4 py-3">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {filteredTrades.map((trade) => (
                 <tr key={trade.id} className="bg-slate-950/30">
                   <td className="px-4 py-4 text-slate-200">
@@ -90,10 +90,7 @@ export default function Journal() {
                     <div className="flex flex-col gap-2">
                       <div className="flex flex-wrap gap-2">
                         {trade.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-300"
-                          >
+                          <span key={tag} className="pill">
                             {tag}
                           </span>
                         ))}

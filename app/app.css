@@ -12,6 +12,25 @@ body {
 
 body {
   font-family: var(--font-sans);
+  background-color: #04060f;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(45, 212, 191, 0.18), transparent 42%),
+    radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.18), transparent 45%),
+    radial-gradient(circle at 20% 85%, rgba(248, 113, 113, 0.12), transparent 42%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.12;
+  z-index: 0;
 }
 
 @layer utilities {
@@ -22,22 +41,50 @@ body {
 
 @layer components {
   .panel {
-    @apply rounded-2xl border border-white/10 bg-slate-900/70 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.9)];
+    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/70 via-slate-900/70 to-slate-900/60 backdrop-blur-xl shadow-[0_30px_60px_-45px_rgba(8,15,30,0.9)];
   }
 
   .panel-soft {
-    @apply rounded-2xl border border-white/10 bg-slate-900/40;
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md;
+  }
+
+  .panel-solid {
+    @apply rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_25px_70px_-45px_rgba(6,12,24,0.85)];
   }
 
   .chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300;
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-300;
   }
 
   .stat-label {
-    @apply text-xs uppercase tracking-[0.28em] text-slate-400;
+    @apply text-[11px] uppercase tracking-[0.32em] text-slate-400;
   }
 
   .stat-value {
     @apply text-2xl font-semibold text-slate-100;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white;
+  }
+
+  .nav-link-active {
+    @apply bg-white/10 text-white shadow-[0_10px_30px_-20px_rgba(56,189,248,0.5)];
+  }
+
+  .stat-card {
+    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/60 via-slate-900/70 to-slate-900/50 p-5 shadow-[0_30px_60px_-45px_rgba(6,10,25,0.9)];
+  }
+
+  .data-table thead {
+    @apply bg-slate-900/80 text-[11px] uppercase tracking-[0.28em] text-slate-400;
+  }
+
+  .data-table tbody tr {
+    @apply border-b border-white/5 transition hover:bg-white/[0.04];
+  }
+
+  .pill {
+    @apply rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-300;
   }
 }

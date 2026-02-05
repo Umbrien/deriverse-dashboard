@@ -44,7 +44,7 @@ export default function Performance() {
   return (
     <div className="flex flex-col gap-6">
       <section className="grid gap-6 lg:grid-cols-12">
-        <div className="panel flex flex-col gap-6 p-6 lg:col-span-7">
+        <div className="panel-solid flex flex-col gap-6 p-6 lg:col-span-7">
           <div>
             <p className="stat-label">Time-based performance</p>
             <h2 className="font-display text-xl text-white">
@@ -135,7 +135,7 @@ export default function Performance() {
           </div>
         </div>
 
-        <div className="panel flex flex-col gap-6 p-6 lg:col-span-5">
+        <div className="panel-solid flex flex-col gap-6 p-6 lg:col-span-5">
           <div>
             <p className="stat-label">Directional bias</p>
             <h2 className="font-display text-xl text-white">
@@ -215,7 +215,7 @@ export default function Performance() {
         </div>
       </section>
 
-      <section className="panel flex flex-col gap-6 p-6">
+      <section className="panel-solid flex flex-col gap-6 p-6">
         <div>
           <p className="stat-label">Symbol performance</p>
           <h2 className="font-display text-xl text-white">
