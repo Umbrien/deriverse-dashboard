@@ -1,87 +1,70 @@
-# Welcome to React Router!
+# Deriverse Trading Analytics Dashboard
 
-A modern, production-ready template for building full-stack React applications using React Router.
+![Dashboard Screenshot](img/dashboard.png)
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+Deriverse is a next-gen, fully on-chain, decentralized Solana trading ecosystem. This dashboard delivers a professional analytics suite with a trading journal, portfolio analysis, and performance intelligence for active traders.
 
-## Features
+## Highlights
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- Institutional-grade dashboard layout with navigation, filters, and dedicated sections.
+- High-signal metrics with visual performance indicators and drawdown tracking.
+- Detailed trading journal with annotations and searchable entries.
+- Portfolio allocation, exposure, and security posture insights.
 
-## Getting Started
+## Feature Coverage
 
-### Installation
+- Total PnL tracking with visual performance indicators
+- Complete trading volume and fee analysis
+- Win rate statistics and trade count metrics
+- Average trade duration calculations
+- Long/Short ratio analysis with directional bias tracking
+- Largest gain/loss tracking for risk management
+- Average win/loss amount analysis
+- Symbol-specific filtering and date range selection
+- Historical PnL charts with drawdown visualization
+- Time-based performance metrics (daily, session-based, time-of-day)
+- Detailed trade history table with annotation capabilities
+- Fee composition breakdown and cumulative fee tracking
+- Order type performance analysis
 
-Install the dependencies:
+## Pages
 
-```bash
-npm install
-```
+- `Overview`: KPI tiles, PnL + drawdown, fees, and order-type performance.
+- `Performance`: time-based analytics, session breakdowns, and directional bias.
+- `Journal`: trade history table with tags and notes.
+- `Portfolio`: allocation, exposure, and security posture.
 
-### Development
+## Tech Stack
 
-Start the development server with HMR:
+- React Router
+- TypeScript
+- Tailwind CSS
+- Vite
 
-```bash
-npm run dev
-```
+## Local Development
 
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
+Install dependencies:
 
 ```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+bun install
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+Run the dev server:
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+```bash
+bun run dev
 ```
 
-## Styling
+Open `http://localhost:5173`.
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+## Production Build
 
----
+```bash
+bun run build
+```
 
-Built with ❤️ using React Router.
+## Notes on Security
+
+- Designed for read-only access patterns.
+- Assumes encrypted storage and scoped API permissions.
+- UI highlights security posture and risk controls.
