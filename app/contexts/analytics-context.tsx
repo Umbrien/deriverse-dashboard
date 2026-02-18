@@ -26,6 +26,9 @@ type AnalyticsContextValue = {
   filteredTrades: Trade[];
   metrics: {
     totalTrades: number;
+    winningTrades: number;
+    losingTrades: number;
+    breakEvenTrades: number;
     grossPnl: number;
     netPnl: number;
     totalVolume: number;
@@ -43,7 +46,14 @@ type AnalyticsContextValue = {
     profitFactor: number;
     expectancy: number;
   };
-  dailyPerformance: Array<{ date: string; pnl: number }>;
+  dailyPerformance: Array<{
+    date: string;
+    pnl: number;
+    volume: number;
+    fees: number;
+    trades: number;
+    winRate: number;
+  }>;
   pnlSeries: Array<{
     date: string;
     pnl: number;
@@ -54,6 +64,9 @@ type AnalyticsContextValue = {
   linePath: string;
   drawdownPath: string;
   maxDrawdown: number;
+  feeSeries: Array<{ date: string; cumulativeFees: number }>;
+  feeDomain: { min: number; max: number };
+  feePath: string;
   feeBreakdown: {
     total: number;
     breakdown: FeeBreakdownItem[];
@@ -64,13 +77,24 @@ type AnalyticsContextValue = {
     pnl: number;
     trades: number;
     winRate: number;
+    avgPnl: number;
+    feeRate: number;
   }>;
   sessionPerformance: Array<{
     session: Trade["session"];
     pnl: number;
     trades: number;
+    winRate: number;
+    avgDuration: number;
+    volume: number;
   }>;
-  timeBuckets: Array<{ label: string; pnl: number; intensity: number }>;
+  timeBuckets: Array<{
+    label: string;
+    pnl: number;
+    intensity: number;
+    trades: number;
+    winRate: number;
+  }>;
 };
 
 const AnalyticsContext = createContext<AnalyticsContextValue | undefined>(
@@ -126,9 +150,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
         const days = rangeDays[dateRange] ?? 30;
         startDate.setDate(startDate.getDate() - days + 1);
       }
-      result = result.filter(
-        (trade) => new Date(trade.date) >= startDate,
-      );
+      result = result.filter((trade) => new Date(trade.date) >= startDate);
     }
 
     return result;
@@ -146,22 +168,23 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       0,
     );
     const netPnl = grossPnl - totalFees;
+
     const winningTrades = filteredTrades.filter((trade) => trade.pnl > 0);
     const losingTrades = filteredTrades.filter((trade) => trade.pnl < 0);
-    const winRate = totalTrades
-      ? winningTrades.length / totalTrades
-      : 0;
+    const breakEvenTrades = filteredTrades.filter((trade) => trade.pnl === 0);
+
+    const winRate = totalTrades ? winningTrades.length / totalTrades : 0;
     const avgDuration = totalTrades
       ? filteredTrades.reduce((sum, trade) => sum + trade.durationMins, 0) /
         totalTrades
       : 0;
+
     const longTrades = filteredTrades.filter((trade) => trade.side === "Long");
-    const shortTrades = filteredTrades.filter(
-      (trade) => trade.side === "Short",
-    );
+    const shortTrades = filteredTrades.filter((trade) => trade.side === "Short");
     const longShortRatio = shortTrades.length
       ? longTrades.length / shortTrades.length
       : longTrades.length;
+
     const largestGain = winningTrades.reduce(
       (max, trade) => (trade.pnl > max ? trade.pnl : max),
       0,
@@ -170,26 +193,31 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       (min, trade) => (trade.pnl < min ? trade.pnl : min),
       0,
     );
+
     const avgWin = winningTrades.length
       ? winningTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
         winningTrades.length
       : 0;
     const avgLoss = losingTrades.length
-      ?
-          Math.abs(
-            losingTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
-              losingTrades.length,
-          )
+      ? Math.abs(
+          losingTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
+            losingTrades.length,
+        )
       : 0;
-    const profitFactor = losingTrades.length
-      ? winningTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
-        Math.abs(losingTrades.reduce((sum, trade) => sum + trade.pnl, 0))
-      : 0;
+
+    const grossWins = winningTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+    const grossLosses = Math.abs(
+      losingTrades.reduce((sum, trade) => sum + trade.pnl, 0),
+    );
+    const profitFactor = grossLosses ? grossWins / grossLosses : 0;
     const expectancy = winRate * avgWin - (1 - winRate) * avgLoss;
     const feeRate = totalFees / Math.max(totalVolume, 1);
 
     return {
       totalTrades,
+      winningTrades: winningTrades.length,
+      losingTrades: losingTrades.length,
+      breakEvenTrades: breakEvenTrades.length,
       grossPnl,
       netPnl,
       totalVolume,
@@ -210,25 +238,47 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   }, [filteredTrades]);
 
   const dailyPerformance = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<
+      string,
+      { pnl: number; volume: number; fees: number; trades: number; wins: number }
+    >();
+
     filteredTrades.forEach((trade) => {
-      const net = trade.pnl - trade.fees - trade.funding;
-      map.set(trade.date, (map.get(trade.date) ?? 0) + net);
+      const current = map.get(trade.date) ?? {
+        pnl: 0,
+        volume: 0,
+        fees: 0,
+        trades: 0,
+        wins: 0,
+      };
+      current.pnl += trade.pnl - trade.fees - trade.funding;
+      current.volume += trade.volume;
+      current.fees += trade.fees + trade.funding;
+      current.trades += 1;
+      current.wins += trade.pnl > 0 ? 1 : 0;
+      map.set(trade.date, current);
     });
+
     return Array.from(map.entries())
-      .sort(
-        ([a], [b]) =>
-          new Date(a).getTime() - new Date(b).getTime(),
-      )
-      .map(([date, pnl]) => ({ date, pnl }));
+      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+      .map(([date, stats]) => ({
+        date,
+        pnl: stats.pnl,
+        volume: stats.volume,
+        fees: stats.fees,
+        trades: stats.trades,
+        winRate: stats.trades ? stats.wins / stats.trades : 0,
+      }));
   }, [filteredTrades]);
 
   const pnlSeries = useMemo(() => {
     let cumulative = 0;
     let peak = 0;
+
     return dailyPerformance.map((day) => {
       cumulative += day.pnl;
       peak = Math.max(peak, cumulative);
+
       return {
         date: day.date,
         pnl: day.pnl,
@@ -244,6 +294,7 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       point.drawdown,
       0,
     ]);
+
     return {
       min: Math.min(...values, 0),
       max: Math.max(...values, 0),
@@ -264,22 +315,49 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     ? Math.min(...pnlSeries.map((point) => point.drawdown))
     : 0;
 
+  const feeSeries = useMemo(() => {
+    let cumulativeFees = 0;
+    return dailyPerformance.map((day) => {
+      cumulativeFees += day.fees;
+      return {
+        date: day.date,
+        cumulativeFees,
+      };
+    });
+  }, [dailyPerformance]);
+
+  const feeDomain = useMemo(() => {
+    const values = feeSeries.map((point) => point.cumulativeFees);
+    return {
+      min: 0,
+      max: Math.max(...values, 1),
+    };
+  }, [feeSeries]);
+
+  const feePath = useMemo(() => {
+    const data = feeSeries.map((point) => ({ value: point.cumulativeFees }));
+    return buildLinePath(data, 640, 140, feeDomain.min, feeDomain.max);
+  }, [feeSeries, feeDomain]);
+
   const feeBreakdown = useMemo(() => {
     const totals = {
       Maker: 0,
       Taker: 0,
       Funding: 0,
     };
+
     filteredTrades.forEach((trade) => {
       totals[trade.feeType] += trade.fees;
       totals.Funding += trade.funding;
     });
+
     const total = totals.Maker + totals.Taker + totals.Funding;
     const breakdown: FeeBreakdownItem[] = [
       { label: "Maker", value: totals.Maker, color: "#38bdf8" },
       { label: "Taker", value: totals.Taker, color: "#f97316" },
       { label: "Funding", value: totals.Funding, color: "#22c55e" },
     ];
+
     let cumulative = 0;
     const gradientStops = breakdown
       .map((item) => {
@@ -302,18 +380,22 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
   const orderTypePerformance = useMemo(() => {
     const map = new Map<
       Trade["orderType"],
-      { pnl: number; trades: number; wins: number }
+      { pnl: number; fees: number; trades: number; wins: number; volume: number }
     >();
 
     filteredTrades.forEach((trade) => {
       const current = map.get(trade.orderType) ?? {
         pnl: 0,
+        fees: 0,
         trades: 0,
         wins: 0,
+        volume: 0,
       };
-      current.pnl += trade.pnl;
+      current.pnl += trade.pnl - trade.fees - trade.funding;
+      current.fees += trade.fees + trade.funding;
       current.trades += 1;
       current.wins += trade.pnl > 0 ? 1 : 0;
+      current.volume += trade.volume;
       map.set(trade.orderType, current);
     });
 
@@ -323,48 +405,77 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
         pnl: stats.pnl,
         trades: stats.trades,
         winRate: stats.trades ? stats.wins / stats.trades : 0,
+        avgPnl: stats.trades ? stats.pnl / stats.trades : 0,
+        feeRate: stats.fees / Math.max(stats.volume, 1),
       }))
       .sort((a, b) => b.pnl - a.pnl);
   }, [filteredTrades]);
 
   const sessionPerformance = useMemo(() => {
-    const map = new Map<Trade["session"], { pnl: number; trades: number }>();
+    const map = new Map<
+      Trade["session"],
+      {
+        pnl: number;
+        trades: number;
+        wins: number;
+        totalDuration: number;
+        volume: number;
+      }
+    >();
+
     filteredTrades.forEach((trade) => {
-      const current = map.get(trade.session) ?? { pnl: 0, trades: 0 };
-      current.pnl += trade.pnl;
+      const current = map.get(trade.session) ?? {
+        pnl: 0,
+        trades: 0,
+        wins: 0,
+        totalDuration: 0,
+        volume: 0,
+      };
+
+      current.pnl += trade.pnl - trade.fees - trade.funding;
       current.trades += 1;
+      current.wins += trade.pnl > 0 ? 1 : 0;
+      current.totalDuration += trade.durationMins;
+      current.volume += trade.volume;
       map.set(trade.session, current);
     });
 
-    return Array.from(map.entries()).map(([session, stats]) => ({
-      session,
-      pnl: stats.pnl,
-      trades: stats.trades,
-    }));
+    return Array.from(map.entries())
+      .map(([session, stats]) => ({
+        session,
+        pnl: stats.pnl,
+        trades: stats.trades,
+        winRate: stats.trades ? stats.wins / stats.trades : 0,
+        avgDuration: stats.trades ? stats.totalDuration / stats.trades : 0,
+        volume: stats.volume,
+      }))
+      .sort((a, b) => b.pnl - a.pnl);
   }, [filteredTrades]);
 
   const timeBuckets = useMemo(() => {
-    const buckets = [
-      "00-04",
-      "04-08",
-      "08-12",
-      "12-16",
-      "16-20",
-      "20-24",
-    ];
-    const bucketStats = buckets.map((label) => ({ label, pnl: 0 }));
+    const buckets = ["00-04", "04-08", "08-12", "12-16", "16-20", "20-24"];
+    const bucketStats = buckets.map((label) => ({
+      label,
+      pnl: 0,
+      trades: 0,
+      wins: 0,
+    }));
+
     filteredTrades.forEach((trade) => {
       const index = Math.min(5, Math.floor(trade.entryHour / 4));
-      bucketStats[index].pnl += trade.pnl;
+      bucketStats[index].pnl += trade.pnl - trade.fees - trade.funding;
+      bucketStats[index].trades += 1;
+      bucketStats[index].wins += trade.pnl > 0 ? 1 : 0;
     });
-    const maxAbs = Math.max(
-      1,
-      ...bucketStats.map((bucket) => Math.abs(bucket.pnl)),
-    );
+
+    const maxAbs = Math.max(1, ...bucketStats.map((bucket) => Math.abs(bucket.pnl)));
 
     return bucketStats.map((bucket) => ({
-      ...bucket,
+      label: bucket.label,
+      pnl: bucket.pnl,
       intensity: Math.abs(bucket.pnl) / maxAbs,
+      trades: bucket.trades,
+      winRate: bucket.trades ? bucket.wins / bucket.trades : 0,
     }));
   }, [filteredTrades]);
 
@@ -389,17 +500,16 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
     linePath,
     drawdownPath,
     maxDrawdown,
+    feeSeries,
+    feeDomain,
+    feePath,
     feeBreakdown,
     orderTypePerformance,
     sessionPerformance,
     timeBuckets,
   };
 
-  return (
-    <AnalyticsContext.Provider value={value}>
-      {children}
-    </AnalyticsContext.Provider>
-  );
+  return <AnalyticsContext.Provider value={value}>{children}</AnalyticsContext.Provider>;
 }
 
 export function useAnalytics() {

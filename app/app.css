@@ -5,6 +5,14 @@
   --font-display: "Space Grotesk", "Segoe UI", sans-serif;
 }
 
+:root {
+  --bg-deep: #050913;
+  --bg-mid: #0b1220;
+  --teal-glow: rgba(45, 212, 191, 0.24);
+  --blue-glow: rgba(56, 189, 248, 0.2);
+  --amber-glow: rgba(251, 191, 36, 0.16);
+}
+
 html,
 body {
   @apply bg-slate-950 text-slate-100 antialiased;
@@ -12,11 +20,12 @@ body {
 
 body {
   font-family: var(--font-sans);
-  background-color: #04060f;
+  background-color: var(--bg-deep);
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(45, 212, 191, 0.18), transparent 42%),
-    radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.18), transparent 45%),
-    radial-gradient(circle at 20% 85%, rgba(248, 113, 113, 0.12), transparent 42%);
+    radial-gradient(circle at 7% 12%, var(--teal-glow), transparent 36%),
+    radial-gradient(circle at 88% 8%, var(--blue-glow), transparent 42%),
+    radial-gradient(circle at 28% 92%, var(--amber-glow), transparent 42%),
+    linear-gradient(140deg, rgba(15, 23, 42, 0.24), rgba(15, 23, 42, 0.02));
   background-attachment: fixed;
 }
 
@@ -26,10 +35,10 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-  background-size: 120px 120px;
-  opacity: 0.12;
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 96px 96px;
+  opacity: 0.18;
   z-index: 0;
 }
 
@@ -37,23 +46,38 @@ body::before {
   .font-display {
     font-family: var(--font-display);
   }
+
+  .animate-fade-up {
+    animation: fade-up 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer components {
   .panel {
-    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/70 via-slate-900/70 to-slate-900/60 backdrop-blur-xl shadow-[0_30px_60px_-45px_rgba(8,15,30,0.9)];
+    @apply rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950/70 via-slate-900/70 to-slate-900/50 backdrop-blur-2xl shadow-[0_35px_80px_-56px_rgba(7,14,30,0.95)];
   }
 
   .panel-soft {
-    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md;
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-lg;
   }
 
   .panel-solid {
-    @apply rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_25px_70px_-45px_rgba(6,12,24,0.85)];
+    @apply rounded-3xl border border-white/10 bg-slate-900/75 backdrop-blur-2xl shadow-[0_40px_90px_-60px_rgba(8,15,32,0.95)];
   }
 
   .chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-300;
+    @apply inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-200;
   }
 
   .stat-label {
@@ -64,27 +88,55 @@ body::before {
     @apply text-2xl font-semibold text-slate-100;
   }
 
+  .section-title {
+    @apply font-display text-xl text-white;
+  }
+
   .nav-link {
-    @apply flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white;
+    @apply flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm text-slate-300 transition duration-150 hover:border-white/10 hover:bg-white/[0.04] hover:text-white;
   }
 
   .nav-link-active {
-    @apply bg-white/10 text-white shadow-[0_10px_30px_-20px_rgba(56,189,248,0.5)];
+    @apply border-emerald-300/25 bg-gradient-to-r from-emerald-400/10 to-sky-400/10 text-white shadow-[0_10px_26px_-18px_rgba(45,212,191,0.7)];
   }
 
   .stat-card {
-    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/60 via-slate-900/70 to-slate-900/50 p-5 shadow-[0_30px_60px_-45px_rgba(6,10,25,0.9)];
+    @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950/70 via-slate-900/70 to-slate-900/45 p-5 shadow-[0_30px_70px_-52px_rgba(8,14,28,0.95)];
+  }
+
+  .pill {
+    @apply rounded-full border border-white/12 bg-white/[0.05] px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-300;
+  }
+
+  .glass-input {
+    @apply w-full rounded-xl border border-white/10 bg-slate-950/65 px-4 py-2.5 text-sm text-slate-100 transition placeholder:text-slate-500 focus:border-emerald-300/45 focus:outline-none focus:ring-2 focus:ring-emerald-300/15;
+  }
+
+  .kpi-badge {
+    @apply rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300;
+  }
+
+  .data-table {
+    @apply border-separate border-spacing-0;
   }
 
   .data-table thead {
-    @apply bg-slate-900/80 text-[11px] uppercase tracking-[0.28em] text-slate-400;
+    @apply bg-slate-900/90 text-[11px] uppercase tracking-[0.28em] text-slate-400;
+  }
+
+  .data-table thead th {
+    @apply sticky top-0 z-10 bg-slate-900/90;
   }
 
   .data-table tbody tr {
     @apply border-b border-white/5 transition hover:bg-white/[0.04];
   }
 
-  .pill {
-    @apply rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-300;
+  .metric-trend-positive {
+    @apply text-emerald-200;
+  }
+
+  .metric-trend-negative {
+    @apply text-rose-200;
   }
 }
